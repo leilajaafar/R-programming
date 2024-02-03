@@ -1,0 +1,123 @@
+#tp 1
+
+#exo 1
+#1
+var1<-c(1:100); var1
+#2
+vec<-seq(0,1,0.1); vec
+#3
+m<-matrix(c(1,2,5,7,2,8,3,9,1,2,4,5),4,3); m
+vec1<-c(1,-2,3)
+m%*%vec1
+#4
+df<-data.frame(sexe=c("homme", "femme", "femme"),
+               niveaudinscription=c("premiere annee", "premiere annee", "deuxieme annee"),
+               note=c(15, 16.5, 14)) ; df
+#5
+df[[2]][3] ; df[3,2]
+#6
+tabcont<-table(df$sexe, df$niveaudinscription)
+tabcont
+
+#exo2
+#1a
+données<-read.csv("données.csv", sep=";") ;données
+donnees<-données[1:25, ] #select number
+
+cont<-table(donnees[,3])
+prctF<-cont[1]/dim(donnees)[1] ; prctF #cont column 1 for F and dim 1 for 25 and not 7
+#1b
+cont<-table(donnees$Origine); cont
+prctA<-cont[1]/25 ;prctA
+#1c
+cont<-table(donnees$Religion) ; cont
+prctC<-cont[1]/25 ; prctC
+#1d
+cont<-table(donnees$Province) ; cont
+prctAl<-cont[1]/dim(donnees)[1] ; prctAl
+#2
+mean(donnees$Age); sd(donnees$Age); min(donnees$Age); max(donnees$Age)
+mean(donnees$Niveau.scholaire.de.la.maman); sd(donnees$Niveau.scholaire.de.la.maman); min(donnees$Niveau.scholaire.de.la.maman); max(donnees$Niveau.scholaire.de.la.maman)
+#3
+hist(donnees$Age)
+hist(donnees$Niveau.scholaire.de.la.maman, main="niveau", col="pink")
+#4
+d<-table(donnees$Religion) ; d/sum(d) #relative frequences
+pie(table(donnees$Religion), labels = paste0(((d/sum(d))*100), "%")) #combining percentages with %
+#5
+table(donnees$Sexe,donnees$Religion)[1,1]/dim(donnees)[1]
+#6
+barplot(table(donnees$Province))
+#7
+barplot(table(donnees$Province, donnees$Religion))
+
+#tp 2
+
+#exo 1
+#1
+Prédictives<-read.csv("Prédictives.txt", sep=";"); Prédictives
+dépendante<-read.csv("dépendante.txt", sep=";"); dépendante
+X<-Prédictives ; X
+Y<-dépendante ; Y
+#2
+X<-as.matrix(X) ; X
+Y<-as.matrix(Y) ; Y
+beta<-solve(t(X)%*%X)%*%t(X)%*%Y; beta
+model<-lm(Y ~ X) ; model
+#3
+y_chap<-X%*%beta
+resid<-Y-y_chap ; resid
+#4
+var_err <- sum(resid^2) / (nrow(X) - ncol(X)) ; var_err
+#5
+sce<-sum((y_chap-mean(Y))^2) ; sce
+sct<-sum((Y-mean(Y))^2) ; sct
+scr<-sum(resid^2) ; scr
+#6
+t_stat<-beta/sqrt(var_err*diag(solve(t(X)%*%X))) ; t_stat
+f_stat<-(sce/(ncol(X)-1))/(scr/(nrow(X)-ncol(X))) ; f_stat
+#7
+#qt() quantiles of student t distribution, individual
+qt(0.975, df= nrow(X)-ncol(X))
+#8
+#qf() quantiles of f distribution, global
+qf(0.95, df1= ncol(X)-1, df2= nrow(X)-ncol(X))
+#9
+model<-lm(X~Y)
+model
+summary(model)
+
+#tp 3
+
+#exo 1
+DATA<-read.csv("DATA.csv", sep=";") ; DATA
+#1
+train <- DATA[1:15, ] ; train
+test <- DATA[16:20, ] ; test
+#2
+train_df <- data.frame(train)  # Assign the data frame to a variable
+model1 <- glm(y ~ Income + Age, data = train_df, family = binomial)
+model1$coefficients
+#3
+prediction_proba <- function(Income, Age, model) {
+  beta <- coef(model)
+  z <- beta[1] + beta[2] * Income + beta[3] * Age
+  probability <- 1 / (1 + exp(-z))
+  return(probability)
+}
+#4
+classification<- function(Income, Age, model) {
+  probability <- prediction_proba(Income, Age, model)
+  ifelse(probability > 0.5, 1, 0)
+}
+#5
+for (i in 1:nrow(Test)) {
+  Test$predicted[i] <- classification(Test$Income[i], Test$Age[i], model)
+}
+#6
+confusion_matrix <- table(Test$predicted, Test$y)
+#7
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+recall <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+F1_score <- 2 * precision * recall / (precision + recall)
